@@ -2,7 +2,7 @@ import config
 import mysql.connector
 import sys
 from books import booklist
-
+from time import sleep
 
 def InsertBook(bookdata):
     sql = f"insert into {config.mysql['table']} (Booktitle,Author,Price,Genre) values(%s,%s,%s,%s)"
@@ -14,7 +14,7 @@ def PopulateDB():
         bookdata = book[:2] + (int(book[2]),) + book[3:]
         InsertBook(bookdata)
 
-def setupTable(populate = False):
+def setupTable():
     dataCursor.execute("SHOW TABLES LIKE %s",(config.mysql["table"],))
     result = dataCursor.fetchone()
     if result:
@@ -24,8 +24,39 @@ def setupTable(populate = False):
     else:
         print("Table not Found, Setting up a new table")
         dataCursor.execute(f"CREATE TABLE {config.mysql['table']} (Booknumber int UNSIGNED PRIMARY KEY AUTO_INCREMENT,Booktitle varchar(255),Author varchar(255),Price int , Genre varchar(50))")
-        if(populate):
-            PopulateDB()
+        while True:
+            answer = input("Do you want to populate the Database with Demo Data? (y/n): ")
+            if(answer == "y" or answer == "Y"):
+                PopulateDB()
+                break
+            elif(answer == "n" or answer == "N"):
+                break
+            else:
+                print("Invalid Response")
+        print("Table Successfully Setup")
+
+def handleInsert():
+    print()
+    print("Insert a Book")
+    Booktitle = input("Enter the title of the book: ")
+    Author = input("Enter the name of the Author: ")
+    Price = int(input("Enter the price for the book: "))
+    Genre = input("Enter the genre of the book: ")
+    answer = input("Are you sure you want to insert This book? (y/n): ")
+    if(answer=="y" or answer =="Y"):
+        InsertBook((Booktitle,Author,Price,Genre))
+        print("Book successfully inserted")
+    else:
+        print("Cancelling transaction")
+
+def handleUpdate():
+    pass
+def handleDelete():
+    pass
+def handleSearch():
+    pass
+def printRecords():
+    pass
 
 try:
     con = mysql.connector.connect(
@@ -41,7 +72,35 @@ except Exception as e:
 print("Connection Successful")
 dataCursor = con.cursor()
 
-setupTable(dataCursor, populate=True)
+setupTable()
 
 
+while True:
+    sleep(1) #Computers are crazy fast
+    # TODO: Make this more better
+    print("\nWelcome to Bookshelf, What would you like to do?")
+    print("1. Insert Records")
+    print("2. Update Records")
+    print("3. Delete Records")
+    print("4. Search")
+    print("5. Show records")
+    print("q. Quit")
+    
+    choice = input("What would you like to do? (1/2/3/4/5/q): ")
+    if choice == "1":
+        handleInsert()
+    elif choice == "2":
+        handleUpdate()
+    elif choice == "3":
+        handleDelete()
+    elif choice == "4":
+        handleSearch()
+    elif choice == "5":
+        printRecords()
+    elif choice == "q":
+        break
+    else:
+        print("Invalid Input!!")
+con.commit()
+con.close()
 
