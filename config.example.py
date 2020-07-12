@@ -2,5 +2,7 @@ mysql = {
     "host":"",
     "user":"",
     "password":"",
-    "database":""
+    "database":"",
+    "table":"Inventory"
+
 }
