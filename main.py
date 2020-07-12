@@ -32,7 +32,7 @@ print("Connection Successful")
 dataCursor = con.cursor()
 
 setupTable(dataCursor)
-
+print("pls save me")
 
 
 
