@@ -79,14 +79,16 @@ while True:
     sleep(1) #Computers are crazy fast
     # TODO: Make this more better
     print("\nWelcome to Bookshelf, What would you like to do?")
+    print("0. Show records")
     print("1. Insert Records")
     print("2. Update Records")
     print("3. Delete Records")
     print("4. Search")
-    print("5. Show records")
     print("q. Quit")
     
     choice = input("What would you like to do? (1/2/3/4/5/q): ")
+    if choice == "0":
+        printRecords()
     if choice == "1":
         handleInsert()
     elif choice == "2":
@@ -95,8 +97,6 @@ while True:
         handleDelete()
     elif choice == "4":
         handleSearch()
-    elif choice == "5":
-        printRecords()
     elif choice == "q":
         break
     else:
