@@ -3,6 +3,17 @@ import mysql.connector
 import sys
 from books import booklist
 from time import sleep
+from tabulate import tabulate
+
+def ask(question):
+    while True:
+        answer = input(question + " (y/n): ")
+        if(answer == "y" or answer == "Y"):
+            return True
+        elif(answer == "n" or answer == "N"):
+            return False
+        else:
+            print("Invalid Response!")
 
 def InsertBook(bookdata):
     sql = f"insert into {config.mysql['table']} (Booktitle,Author,Price,Genre) values(%s,%s,%s,%s)"
@@ -24,15 +35,8 @@ def setupTable():
     else:
         print("Table not Found, Setting up a new table")
         dataCursor.execute(f"CREATE TABLE {config.mysql['table']} (Booknumber int UNSIGNED PRIMARY KEY AUTO_INCREMENT,Booktitle varchar(255),Author varchar(255),Price int , Genre varchar(50))")
-        while True:
-            answer = input("Do you want to populate the Database with Demo Data? (y/n): ")
-            if(answer == "y" or answer == "Y"):
-                PopulateDB()
-                break
-            elif(answer == "n" or answer == "N"):
-                break
-            else:
-                print("Invalid Response")
+        if(ask("Do you want to populate the Database with Demo Data?")):
+            PopulateDB()
         print("Table Successfully Setup")
 
 def handleInsert():
@@ -52,7 +56,28 @@ def handleInsert():
 def handleUpdate():
     pass
 def handleDelete():
-    pass
+    if(not ask("Do you know the Book Id of the entry you want to delete?")):
+        print("Launching search Operation")
+        handleSearch()
+    ans = input("Enter List of Book id you want to delete (Eg. 20,39,12,14), q to quit: ") 
+    if ans == "q" or ans == "Q":
+        return()
+    else:
+        #ans = con.converter.escape(ans) # Thats why SQL is bad
+        ans = con._cmysql.escape_string(ans).decode("utf-8")
+        dataCursor.execute(f"select * from {config.mysql['table']} where Booknumber in ({ans})") 
+        data = dataCursor.fetchall()
+        data.insert(0,("Book ID","Name","Author","Price","Genre"))
+        print(tabulate(data,headers="firstrow",tablefmt="github"))
+        if(ask("Are you sure You want to delete these Entries?")):
+            dataCursor.execute(f"delete from {config.mysql['table']} where Booknumber in ({ans})") 
+            con.commit()
+            print("Deleted")
+        else:
+            print("Deletion Cancelled")
+
+
+    
 def handleSearch():
     pass
 def printRecords():
