@@ -58,7 +58,8 @@ def handleUpdate():
     print("Update Book Database:")
     if(not ask("Do you know the Book Id of the entry you want to update?")):
         print("Launching search....")
-        handleSearch()
+        while handleSearch():
+            pass
     BookNum = input("Enter Book's id you want to update, q to quit: ") 
     if BookNum == "q" or BookNum == "Q":
         return()
@@ -99,8 +100,8 @@ def handleUpdate():
                 con.commit()
                 print("Field Successfuly changed to:")
                 dataCursor.execute(f"select * from {config.mysql['table']} where Booknumber = %s",(BookNum,)) 
-                data = [("Book ID","Name","Author","Price","Genre"),dataCursor.fetchone()]
-                print(tabulate(data,headers="firstrow",tablefmt="github"))
+                data = [dataCursor.fetchone()]
+                print(tabulate(data,headers=("Book ID","Name","Author","Price","Genre"),tablefmt="github"))
             else:
                 print("Cancelling Update")
         else:
@@ -110,7 +111,8 @@ def handleUpdate():
 def handleDelete():
     if(not ask("Do you know the Book Id of the entry you want to delete?")):
         print("Launching search....")
-        handleSearch()
+        while handleSearch():
+            pass
     ans = input("Enter List of Book id you want to delete (Eg. 20,39,12,14), q to quit: ") 
     if ans == "q" or ans == "Q":
         return()
@@ -120,7 +122,9 @@ def handleDelete():
         dataCursor.execute(f"select * from {config.mysql['table']} where Booknumber in ({ans})") 
         data = dataCursor.fetchall()
         data.insert(0,("Book ID","Name","Author","Price","Genre"))
+        print("Rows to be deleted: ")
         print(tabulate(data,headers="firstrow",tablefmt="github"))
+        print()
         if(ask("Are you sure You want to delete these Entries?")):
             dataCursor.execute(f"delete from {config.mysql['table']} where Booknumber in ({ans})") 
             con.commit()
@@ -128,12 +132,55 @@ def handleDelete():
         else:
             print("Deletion Cancelled")
 
+def PrintPages(sql,tpl):
+    dataCursor.execute(sql,tpl)
+    firstEntry = True
+    while True:
+        data = dataCursor.fetchmany(25)
+        if(len(data)==0):
+            if firstEntry:
+                print("No Record Found Matching your query")
+            else:
+                print("End of Records")
+            break
+        if firstEntry:
+            print(tabulate(data,tablefmt="github",headers=("Book ID","Name","Author","Price","Genre")))
+            firstEntry = False
+        else:
+            print(tabulate(data,tablefmt="github"))
+        res = input("(Enter,q): ")
+        if(res=="q"):
+            return(False)
+    return(True)
 
     
 def handleSearch():
-    pass
-def printRecords():
-    pass
+    print()
+    dict = {
+            "2":"Booktitle",
+            "3":"Author",
+            "4":"Genre"
+        }
+    print("Explore Database ")
+    print("1. View All record")
+    print("2. Search By Name")
+    print("3. Search By Author")
+    print("4. Search By genre")
+    print("q. Quit")
+    while True:
+        response = input("What would you like to do? (1,2,3,4,q): ")
+        if(response == "q"):
+            return(False)
+        elif(response not in ["1","2","3","4"]):
+            print("Invalid input!")
+        else:
+            break
+    if(response=="1"):
+        return PrintPages(f"SELECT * from {config.mysql['table']} ORDER BY Booktitle ASC ",None)
+    else:
+        param = input("Enter What to Search For: ")
+        return PrintPages(f"SELECT * from {config.mysql['table']} Where LOWER ({dict[response]}) LIKE %s",(f"%{param.lower()}%",))
+
 
 try:
     con = mysql.connector.connect(
@@ -156,29 +203,30 @@ while True:
     sleep(1) #Computers are crazy fast
     # TODO: Make this more better
     print("\nWelcome to Bookshelf, What would you like to do?")
-    print("0. Show records")
     print("1. Insert Records")
     print("2. Update Records")
     print("3. Delete Records")
-    print("4. Search")
+    print("4. Search or Explore records")
     print("q. Quit")
     
-    choice = input("What would you like to do? (1/2/3/4/5/q): ")
-    if choice == "0":
-        printRecords()
-    if choice == "1":
-        handleInsert()
-    elif choice == "2":
-        while handleUpdate():
-            pass
-    elif choice == "3":
-        handleDelete()
-    elif choice == "4":
-        handleSearch()
-    elif choice == "q":
-        break
-    else:
-        print("Invalid Input!!")
+    choice = input("What would you like to do? (1/2/3/4/q): ")
+    try:
+        if choice == "1":
+            handleInsert()
+        elif choice == "2":
+            while handleUpdate():
+                pass
+        elif choice == "3":
+            handleDelete()
+        elif choice == "4":
+            while handleSearch():
+                pass
+        elif choice == "q":
+            break
+        else:
+            print("Invalid Input!!")
+    except:
+        print("Sorry there was a error Processing your query, Please Try again")
 con.commit()
 con.close()
 
