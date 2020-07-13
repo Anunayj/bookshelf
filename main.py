@@ -166,7 +166,7 @@ def handleSearch():
     print("2. Search By Name")
     print("3. Search By Author")
     print("4. Search By genre")
-    print("q. Quit")
+    print("q. Go Back")
     while True:
         response = input("What would you like to do? (1,2,3,4,q): ")
         if(response == "q"):
@@ -225,7 +225,8 @@ while True:
             break
         else:
             print("Invalid Input!!")
-    except:
+    except Exception as e:
+        print(e)
         print("Sorry there was a error Processing your query, Please Try again")
 con.commit()
 con.close()
