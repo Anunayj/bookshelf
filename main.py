@@ -54,10 +54,62 @@ def handleInsert():
         print("Cancelling transaction")
 
 def handleUpdate():
-    pass
+    print()
+    print("Update Book Database:")
+    if(not ask("Do you know the Book Id of the entry you want to update?")):
+        print("Launching search....")
+        handleSearch()
+    BookNum = input("Enter Book's id you want to update, q to quit: ") 
+    if BookNum == "q" or BookNum == "Q":
+        return()
+    else:
+        dataCursor.execute(f"select * from {config.mysql['table']} where Booknumber = %s",(BookNum,)) 
+        data = [("Book ID","Name","Author","Price","Genre"),dataCursor.fetchone()]
+    if(len(data)==1):
+        print("No book With that Bookid")
+        return()
+    print()
+    print("Selected Entry:")
+    print(tabulate(data,headers="firstrow",tablefmt="github"))
+    dict = {
+        "1":"Booktitle",
+        "2":"Author",
+        "3":"Price",
+        "4":"Genre"
+    }
+    while True:
+        print()
+        print("Which Field would you like to change")
+        print("1. Name")
+        print("2. Author")
+        print("3. Price")
+        print("4. Genre")
+        print("b. Update Another book")
+        print("m. Return to main Menu")
+        ans = input("(1,2,3,4,b,m): ")
+        if(ans == "b"):
+            return(True)
+        elif(ans == "m"):
+            return(False)
+        elif(ans in dict.keys()):
+            pass
+            value = input("Enter The new value for the field: ")
+            if(ask("Are you sure you want to change that?")):
+                dataCursor.execute(f"UPDATE {config.mysql['table']} SET {dict[ans]} = %s WHERE Booknumber = %s",(value if ans not in [3] else int(value),int(BookNum))) 
+                con.commit()
+                print("Field Successfuly changed to:")
+                dataCursor.execute(f"select * from {config.mysql['table']} where Booknumber = %s",(BookNum,)) 
+                data = [("Book ID","Name","Author","Price","Genre"),dataCursor.fetchone()]
+                print(tabulate(data,headers="firstrow",tablefmt="github"))
+            else:
+                print("Cancelling Update")
+        else:
+            print("Invalid Input!")
+
+         
 def handleDelete():
     if(not ask("Do you know the Book Id of the entry you want to delete?")):
-        print("Launching search Operation")
+        print("Launching search....")
         handleSearch()
     ans = input("Enter List of Book id you want to delete (Eg. 20,39,12,14), q to quit: ") 
     if ans == "q" or ans == "Q":
@@ -117,7 +169,8 @@ while True:
     if choice == "1":
         handleInsert()
     elif choice == "2":
-        handleUpdate()
+        while handleUpdate():
+            pass
     elif choice == "3":
         handleDelete()
     elif choice == "4":
