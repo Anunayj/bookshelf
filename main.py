@@ -150,6 +150,7 @@ def PrintPages(sql,tpl):
             print(tabulate(data,tablefmt="github"))
         res = input("(Enter,q): ")
         if(res=="q"):
+            dataCursor.fetchall()
             return(False)
     return(True)
 
@@ -228,6 +229,5 @@ while True:
     except Exception as e:
         print(e)
         print("Sorry there was a error Processing your query, Please Try again")
-con.commit()
 con.close()
 
