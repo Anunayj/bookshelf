@@ -167,17 +167,21 @@ def handleSearch():
     print("2. Search By Name")
     print("3. Search By Author")
     print("4. Search By genre")
+    print("5. Search By Book Id")
     print("q. Go Back")
     while True:
-        response = input("What would you like to do? (1,2,3,4,q): ")
+        response = input("What would you like to do? (1,2,3,4,5,q): ")
         if(response == "q"):
             return(False)
-        elif(response not in ["1","2","3","4"]):
+        elif(response not in ["1","2","3","4","5"]):
             print("Invalid input!")
         else:
             break
     if(response=="1"):
         return PrintPages(f"SELECT * from {config.mysql['table']} ORDER BY Booktitle ASC ",None)
+    elif(response=="5"):
+        param = input("Enter Book Id: ")
+        return PrintPages(f"SELECT * from {config.mysql['table']} Where Booknumber = %s ",(int(param),))
     else:
         param = input("Enter What to Search For: ")
         return PrintPages(f"SELECT * from {config.mysql['table']} Where LOWER ({dict[response]}) LIKE %s",(f"%{param.lower()}%",))
